@@ -1,392 +1,328 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Medical Consultation Prototype</title>
-  <style>
-    body{font-family:system-ui,Segoe UI,Roboto,Arial;margin:0;background:#f4f6f8;color:#111}
-    header{background:#0b5ed7;color:white;padding:12px 20px}
-    main{padding:18px;max-width:1100px;margin:18px auto}
-    .card{background:white;border-radius:10px;padding:14px;box-shadow:0 2px 6px rgba(0,0,0,0.08);margin:12px 0}
-    input,select,textarea,button{font-size:14px;padding:8px;border-radius:6px;border:1px solid #d0d7de}
-    .grid{display:grid;gap:12px}
-    .row{display:flex;gap:10px}
-    nav .btn{background:transparent;color:white;border:1px solid rgba(255,255,255,0.15);padding:6px 10px;border-radius:6px;margin-right:8px}
-    table{width:100%;border-collapse:collapse}
-    th,td{padding:8px;border-bottom:1px solid #eee;text-align:left}
-    .muted{color:#6b7280;font-size:13px}
-    .small{font-size:13px}
-    .danger{background:#ffe6e6;color:#9b1c1c}
-    .success{background:#e6ffef;color:#0b6b2a}
-  </style>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>MEDF-PS20 — Medical Consultation Prototype</title>
+<style>
+  body{font-family:system-ui,Segoe UI,Roboto,Arial;margin:0;background:#f4f6f8;color:#111}
+  header{background:#0b5ed7;color:white;padding:12px 20px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap}
+  header strong{font-size:16px}
+  header button{background:transparent;color:white;border:1px solid rgba(255,255,255,0.3);padding:6px 10px;border-radius:6px;cursor:pointer}
+  main{padding:18px;max-width:1100px;margin:18px auto}
+  .card{background:white;border-radius:10px;padding:16px;box-shadow:0 2px 6px rgba(0,0,0,0.08);margin:12px 0}
+  input,select,textarea,button{font-size:15px;padding:8px;border-radius:6px;border:1px solid #ccc;width:100%;margin-top:8px;box-sizing:border-box}
+  button{background:#0b5ed7;color:white;border:none;cursor:pointer;transition:.3s}
+  button:hover{background:#094ab0}
+  .grid{display:grid;gap:12px}
+  .row{display:flex;gap:10px;flex-wrap:wrap}
+  table{width:100%;border-collapse:collapse}
+  th,td{padding:8px;border-bottom:1px solid #eee;text-align:left;font-size:14px}
+  .muted{color:#6b7280;font-size:13px}
+  .small{font-size:13px}
+  .danger{background:#ffe6e6;color:#9b1c1c}
+  .success{background:#e6ffef;color:#0b6b2a}
+  @media(max-width:700px){.row{flex-direction:column}}
+</style>
 </head>
 <body>
-  <header>
-    <strong>MEDF-PS20 — Medical Consultation Prototype</strong>
-    <div style="float:right">
-      <button class="btn" onclick="showSection('auth')">Logout</button>
+<header>
+  <strong>MEDF-PS20 — Medical Consultation Prototype</strong>
+  <button onclick="logout()">Logout</button>
+</header>
+
+<main>
+
+  <!-- REGISTER -->
+  <section id="register" class="card">
+    <h3>Create Account</h3>
+    <input id="regName" placeholder="Full name" />
+    <input id="regEmail" type="email" placeholder="Email" />
+    <input id="regPassword" type="password" placeholder="Password" />
+    <select id="regRole">
+      <option value="patient">Patient</option>
+      <option value="doctor">Doctor</option>
+      <option value="pharmacist">Pharmacist</option>
+      <option value="admin">Admin</option>
+    </select>
+    <button onclick="registerUser()">Register</button>
+    <p class="muted" style="text-align:center;margin-top:10px">
+      Already have an account? <a href="#" onclick="showSection('login')">Login here</a>
+    </p>
+  </section>
+
+  <!-- LOGIN -->
+  <section id="login" class="card" style="display:none">
+    <h3>Sign in</h3>
+    <input id="loginEmail" placeholder="Email" type="email" />
+    <input id="loginPassword" placeholder="Password" type="password" />
+    <select id="loginRole">
+      <option value="patient">Patient</option>
+      <option value="doctor">Doctor</option>
+      <option value="admin">Admin</option>
+      <option value="pharmacist">Pharmacist</option>
+    </select>
+    <button onclick="login()">Login</button>
+    <p class="muted" style="text-align:center;margin-top:10px">
+      Don’t have an account? <a href="#" onclick="showSection('register')">Register</a>
+    </p>
+  </section>
+
+  <!-- PATIENT -->
+  <section id="patient" class="card" style="display:none">
+    <h3>Patient Dashboard — <span id="patientName"></span></h3>
+    <div class="row">
+      <div style="flex:1">
+        <h4>Book Appointment</h4>
+        <label>Choose Doctor</label>
+        <select id="selectDoctor"></select>
+        <label>Date & Time</label>
+        <input id="apptDate" type="datetime-local" />
+        <label>Reason</label>
+        <textarea id="apptReason" rows="3"></textarea>
+        <button onclick="bookAppointment()">Proceed to Payment & Book</button>
+      </div>
+      <div style="flex:1">
+        <h4>My Appointments</h4>
+        <div id="patientAppts"></div>
+      </div>
     </div>
-  </header>
+  </section>
 
-  <main>
-    <!-- AUTH (Login/Register) -->
-    <section id="auth" class="card">
-      <h3>Sign in / Register</h3>
-      <div class="grid">
-        <div class="row">
-          <div style="flex:1">
-            <h4>Login</h4>
-            <input id="loginEmail" placeholder="Email" />
-            <input id="loginPassword" type="password" placeholder="Password" style="margin-top:8px" />
-            <select id="loginRole" style="margin-top:8px">
-              <option value="patient">Patient</option>
-              <option value="doctor">Doctor</option>
-              <option value="admin">Admin</option>
-              <option value="pharmacist">Pharmacist</option>
-            </select>
-            <div style="margin-top:8px">
-              <button onclick="login()">Login</button>
-            </div>
-          </div>
-          <div style="flex:1">
-            <h4>Register</h4>
-            <input id="regName" placeholder="Full name" />
-            <input id="regEmail" placeholder="Email" style="margin-top:8px" />
-            <input id="regPassword" type="password" placeholder="Password" style="margin-top:8px" />
-            <select id="regRole" style="margin-top:8px">
-              <option value="patient">Patient</option>
-              <option value="doctor">Doctor</option>
-              <option value="admin">Admin</option>
-              <option value="pharmacist">Pharmacist</option>
-            </select>
-            <div style="margin-top:8px">
-              <button onclick="registerUser()">Register</button>
-            </div>
-          </div>
-        </div>
+  <!-- DOCTOR -->
+  <section id="doctor" class="card" style="display:none">
+    <h3>Doctor Dashboard — <span id="doctorName"></span></h3>
+    <div class="row">
+      <div style="flex:1">
+        <h4>Pending Appointments</h4>
+        <div id="doctorPending"></div>
       </div>
-      <p class="muted">This is a frontend-only prototype that uses <code>localStorage</code> to simulate users, appointments, prescriptions and payments.</p>
-    </section>
-
-    <!-- PATIENT DASHBOARD -->
-    <section id="patient" class="card" style="display:none">
-      <h3>Patient Dashboard — <span id="patientName"></span></h3>
-      <div class="row">
-        <div style="flex:1">
-          <h4>Book Appointment</h4>
-          <label>Choose Doctor</label>
-          <select id="selectDoctor"></select>
-          <label style="margin-top:8px">Date & Time</label>
-          <input id="apptDate" type="datetime-local" />
-          <label style="margin-top:8px">Reason</label>
-          <textarea id="apptReason" rows="3"></textarea>
-          <div style="margin-top:8px">
-            <button onclick="bookAppointment()">Proceed to Payment & Book</button>
-          </div>
-        </div>
-        <div style="flex:1">
-          <h4>My Appointments</h4>
-          <div id="patientAppts"></div>
-        </div>
+      <div style="flex:1">
+        <h4>Approved / History</h4>
+        <div id="doctorHistory"></div>
       </div>
-    </section>
+    </div>
+  </section>
 
-    <!-- DOCTOR DASHBOARD -->
-    <section id="doctor" class="card" style="display:none">
-      <h3>Doctor Dashboard — <span id="doctorName"></span></h3>
-      <div class="row">
-        <div style="flex:1">
-          <h4>Pending Appointments</h4>
-          <div id="doctorPending"></div>
-        </div>
-        <div style="flex:1">
-          <h4>Approved / History</h4>
-          <div id="doctorHistory"></div>
-        </div>
-      </div>
-    </section>
+  <!-- PHARMACIST -->
+  <section id="pharmacist" class="card" style="display:none">
+    <h3>Pharmacist Dashboard — <span id="pharmacistName"></span></h3>
+    <div id="prescriptionsList"></div>
+  </section>
 
-    <!-- PHARMACIST DASHBOARD -->
-    <section id="pharmacist" class="card" style="display:none">
-      <h3>Pharmacist Dashboard — <span id="pharmacistName"></span></h3>
-      <div id="prescriptionsList"></div>
-    </section>
+  <!-- ADMIN -->
+  <section id="admin" class="card" style="display:none">
+    <h3>Admin Dashboard</h3>
+    <h4>Users</h4>
+    <div id="adminUsers"></div>
+    <h4 style="margin-top:12px">All Appointments</h4>
+    <div id="adminAppts"></div>
+  </section>
 
-    <!-- ADMIN DASHBOARD -->
-    <section id="admin" class="card" style="display:none">
-      <h3>Admin Dashboard</h3>
-      <h4>Users</h4>
-      <div id="adminUsers"></div>
-      <h4 style="margin-top:12px">All Appointments</h4>
-      <div id="adminAppts"></div>
-    </section>
-
-  </main>
+</main>
 
 <script>
-// ---------- Simple client-side data layer (localStorage) ----------
-const DB_USERS_KEY = 'medf_users_v1'
-const DB_APPTS_KEY = 'medf_appts_v1'
-const DB_PRESC_KEY = 'medf_presc_v1'
-
-function load(key){return JSON.parse(localStorage.getItem(key) || '[]')}
-function save(key, data){localStorage.setItem(key, JSON.stringify(data))}
-
-// Seed a default admin and sample doctor/patient if no users exist
-(function seed(){
-  const users = load(DB_USERS_KEY)
-  if(users.length===0){
-    users.push({id:uid(),'name':'Admin','email':'admin@medf.test','password':'admin','role':'admin'})
-    users.push({id:uid(),'name':'Dr. Alice','email':'alice@medf.test','password':'doctor','role':'doctor'})
-    users.push({id:uid(),'name':'Patient Bob','email':'bob@medf.test','password':'patient','role':'patient'})
-    save(DB_USERS_KEY, users)
-  }
-  if(!localStorage.getItem(DB_APPTS_KEY)) save(DB_APPTS_KEY, [])
-  if(!localStorage.getItem(DB_PRESC_KEY)) save(DB_PRESC_KEY, [])
-})()
-
-// Helpers
+const DB_USERS_KEY='medf_users_v1',DB_APPTS_KEY='medf_appts_v1',DB_PRESC_KEY='medf_presc_v1'
+function load(k){return JSON.parse(localStorage.getItem(k)||'[]')}
+function save(k,v){localStorage.setItem(k,JSON.stringify(v))}
 function uid(){return Math.random().toString(36).slice(2,10)}
-function findUserByEmail(email){return load(DB_USERS_KEY).find(u=>u.email===email)}
+function findUserByEmail(e){return load(DB_USERS_KEY).find(u=>u.email===e)}
 
-// ---------- Auth / Register / Login ----------
-function registerUser(){
-  const name=document.getElementById('regName').value.trim()
-  const email=document.getElementById('regEmail').value.trim()
-  const pass=document.getElementById('regPassword').value
-  const role=document.getElementById('regRole').value
-  if(!name||!email||!pass){alert('Please fill fields');return}
-  if(findUserByEmail(email)){alert('User with this email exists');return}
+;(function seed(){
   const users=load(DB_USERS_KEY)
-  const u={id:uid(),name,email,password:pass,role}
-  users.push(u); save(DB_USERS_KEY, users)
-  alert('Registered. You can login now.')
-}
-
-function login(){
-  const email=document.getElementById('loginEmail').value.trim()
-  const pass=document.getElementById('loginPassword').value
-  const role=document.getElementById('loginRole').value
-  const user=load(DB_USERS_KEY).find(u=>u.email===email && u.password===pass && u.role===role)
-  if(!user){alert('Invalid credentials for selected role');return}
-  sessionStorage.setItem('medf_current', JSON.stringify(user))
-  showRoleDashboard(user.role)
-}
-
-function logoutAndShowAuth(){
-  sessionStorage.removeItem('medf_current')
-  showSection('auth')
-}
+  if(users.length===0){
+    users.push({id:uid(),name:'Admin',email:'admin@medf.test',password:'admin',role:'admin'})
+    users.push({id:uid(),name:'Dr. Alice',email:'alice@medf.test',password:'doctor',role:'doctor'})
+    users.push({id:uid(),name:'Patient Bob',email:'bob@medf.test',password:'patient',role:'patient'})
+    save(DB_USERS_KEY,users)
+  }
+  if(!localStorage.getItem(DB_APPTS_KEY))save(DB_APPTS_KEY,[])
+  if(!localStorage.getItem(DB_PRESC_KEY))save(DB_PRESC_KEY,[])
+})()
 
 function showSection(id){
   document.querySelectorAll('main > section').forEach(s=>s.style.display='none')
   document.getElementById(id).style.display='block'
 }
 
-function getCurrent(){return JSON.parse(sessionStorage.getItem('medf_current')||'null')}
-
-// ---------- UI Routing by Role ----------
-function showRoleDashboard(role){
-  const user=getCurrent()
-  if(!user) return showSection('auth')
-  if(role==='patient'){
-    document.getElementById('patientName').innerText = user.name
-    populateDoctors(); renderPatientAppts(); showSection('patient')
-  }else if(role==='doctor'){
-    document.getElementById('doctorName').innerText = user.name
-    renderDoctorPending(); renderDoctorHistory(); showSection('doctor')
-  }else if(role==='admin'){
-    renderAdminUsers(); renderAdminAppts(); showSection('admin')
-  }else if(role==='pharmacist'){
-    document.getElementById('pharmacistName').innerText = user.name
-    renderPrescriptions(); showSection('pharmacist')
-  }
+function registerUser(){
+  const name=document.getElementById('regName').value.trim()
+  const email=document.getElementById('regEmail').value.trim()
+  const pass=document.getElementById('regPassword').value
+  const role=document.getElementById('regRole').value
+  if(!name||!email||!pass){alert('Please fill all fields');return}
+  if(findUserByEmail(email)){alert('User already exists');return}
+  const users=load(DB_USERS_KEY)
+  users.push({id:uid(),name,email,password:pass,role})
+  save(DB_USERS_KEY,users)
+  alert('Registered successfully! You can now login.')
+  showSection('login')
 }
 
-// ---------- Patient flows: book, pay, view ----------
+function login(){
+  const email=document.getElementById('loginEmail').value.trim()
+  const pass=document.getElementById('loginPassword').value
+  const role=document.getElementById('loginRole').value
+  const user=load(DB_USERS_KEY).find(u=>u.email===email&&u.password===pass&&u.role===role)
+  if(!user){alert('Invalid credentials');return}
+  sessionStorage.setItem('medf_current',JSON.stringify(user))
+  showRoleDashboard(user.role)
+}
+
+function logout(){
+  sessionStorage.removeItem('medf_current')
+  showSection('login')
+}
+
+function getCurrent(){return JSON.parse(sessionStorage.getItem('medf_current')||'null')}
+
+function showRoleDashboard(role){
+  const user=getCurrent();if(!user)return showSection('login')
+  if(role==='patient'){document.getElementById('patientName').innerText=user.name;populateDoctors();renderPatientAppts();showSection('patient')}
+  else if(role==='doctor'){document.getElementById('doctorName').innerText=user.name;renderDoctorPending();renderDoctorHistory();showSection('doctor')}
+  else if(role==='admin'){renderAdminUsers();renderAdminAppts();showSection('admin')}
+  else if(role==='pharmacist'){document.getElementById('pharmacistName').innerText=user.name;renderPrescriptions();showSection('pharmacist')}
+}
+
 function populateDoctors(){
-  const sel = document.getElementById('selectDoctor')
-  sel.innerHTML=''
-  const doctors = load(DB_USERS_KEY).filter(u=>u.role==='doctor')
-  doctors.forEach(d=>{
-    const opt=document.createElement('option'); opt.value=d.id; opt.textContent=d.name+' ('+d.email+')'; sel.appendChild(opt)
-  })
+  const sel=document.getElementById('selectDoctor');sel.innerHTML=''
+  const doctors=load(DB_USERS_KEY).filter(u=>u.role==='doctor')
+  doctors.forEach(d=>{const opt=document.createElement('option');opt.value=d.id;opt.textContent=d.name+' ('+d.email+')';sel.appendChild(opt)})
 }
 
 function bookAppointment(){
-  const user = getCurrent(); if(!user) return alert('Login required')
-  const doctorId = document.getElementById('selectDoctor').value
-  const datetime = document.getElementById('apptDate').value
-  const reason = document.getElementById('apptReason').value
-  if(!doctorId||!datetime||!reason) return alert('Please choose doctor/date/reason')
-  // Simulate payment step
-  if(!confirm('Simulate payment of ₹500 and complete booking?')) return
-  const appts = load(DB_APPTS_KEY)
-  const appt = {id:uid(),patientId:user.id,doctorId,datetime,reason,status:'pending',paid:true,videoLink:null,prescriptionId:null,createdAt:Date.now()}
-  appts.push(appt); save(DB_APPTS_KEY, appts)
-  alert('Appointment booked and payment recorded. Doctor will approve.')
-  renderPatientAppts(); renderDoctorPending(); renderAdminAppts();
+  const user=getCurrent();if(!user)return alert('Login required')
+  const doctorId=document.getElementById('selectDoctor').value
+  const datetime=document.getElementById('apptDate').value
+  const reason=document.getElementById('apptReason').value
+  if(!doctorId||!datetime||!reason)return alert('Fill all fields')
+  if(!confirm('Simulate payment of ₹500 and confirm booking?'))return
+  const appts=load(DB_APPTS_KEY)
+  const appt={id:uid(),patientId:user.id,doctorId,datetime,reason,status:'pending',paid:true,videoLink:null,prescriptionId:null,createdAt:Date.now()}
+  appts.push(appt);save(DB_APPTS_KEY,appts)
+  alert('Appointment booked. Await doctor approval.')
+  renderPatientAppts();renderDoctorPending();renderAdminAppts()
 }
 
 function renderPatientAppts(){
-  const user=getCurrent(); if(!user) return
-  const appts = load(DB_APPTS_KEY).filter(a=>a.patientId===user.id)
-  const container = document.getElementById('patientAppts'); container.innerHTML=''
-  if(appts.length===0){container.innerHTML='<p class="muted">No appointments yet</p>';return}
-  const table=document.createElement('table')
-  table.innerHTML='<tr><th>Doctor</th><th>Date</th><th>Status</th><th>Actions</th></tr>'
+  const user=getCurrent();if(!user)return
+  const appts=load(DB_APPTS_KEY).filter(a=>a.patientId===user.id)
+  const c=document.getElementById('patientAppts');c.innerHTML=''
+  if(appts.length===0){c.innerHTML='<p class="muted">No appointments yet</p>';return}
+  const t=document.createElement('table')
+  t.innerHTML='<tr><th>Doctor</th><th>Date</th><th>Status</th><th>Action</th></tr>'
   appts.forEach(a=>{
-    const doc = load(DB_USERS_KEY).find(u=>u.id===a.doctorId)
+    const d=load(DB_USERS_KEY).find(u=>u.id===a.doctorId)
     const tr=document.createElement('tr')
-    tr.innerHTML = `<td>${doc?doc.name:'(deleted)'}</td><td>${new Date(a.datetime).toLocaleString()}</td><td>${a.status}</td><td>${a.videoLink?'<a href="'+a.videoLink+'" target="_blank">Join Call</a>':''} ${a.prescriptionId?'<button onclick="viewPrescription(\''+a.prescriptionId+'\')">View Rx</button>':''}</td>`
-    table.appendChild(tr)
-  })
-  container.appendChild(table)
+    tr.innerHTML=`<td>${d?d.name:'(deleted)'}</td><td>${new Date(a.datetime).toLocaleString()}</td><td>${a.status}</td><td>${a.videoLink?'<a href="'+a.videoLink+'" target="_blank">Join Call</a>':''} ${a.prescriptionId?'<button onclick="viewPrescription(\''+a.prescriptionId+'\')">View Rx</button>':''}</td>`
+    t.appendChild(tr)
+  });c.appendChild(t)
 }
 
-// ---------- Doctor flows: approve, send video link, write prescription ----------
 function renderDoctorPending(){
-  const user=getCurrent(); if(!user) return
-  const appts = load(DB_APPTS_KEY).filter(a=>a.doctorId===user.id && a.status==='pending')
-  const container=document.getElementById('doctorPending'); container.innerHTML=''
-  if(appts.length===0){container.innerHTML='<p class="muted">No pending appointments</p>';return}
+  const user=getCurrent();if(!user)return
+  const appts=load(DB_APPTS_KEY).filter(a=>a.doctorId===user.id&&a.status==='pending')
+  const c=document.getElementById('doctorPending');c.innerHTML=''
+  if(appts.length===0){c.innerHTML='<p class="muted">No pending appointments</p>';return}
   appts.forEach(a=>{
-    const patient = load(DB_USERS_KEY).find(u=>u.id===a.patientId)
-    const div=document.createElement('div'); div.className='card small'
-    div.innerHTML = `<strong>${patient?patient.name:'(patient)'} — ${new Date(a.datetime).toLocaleString()}</strong><p class="muted">${a.reason}</p>`
-    const btnApprove=document.createElement('button'); btnApprove.textContent='Approve & Send Video Link'; btnApprove.onclick=()=>approveAndSend(a.id)
-    div.appendChild(btnApprove)
-    container.appendChild(div)
+    const p=load(DB_USERS_KEY).find(u=>u.id===a.patientId)
+    const d=document.createElement('div');d.className='card small'
+    d.innerHTML=`<strong>${p?p.name:'(patient)'} — ${new Date(a.datetime).toLocaleString()}</strong><p class="muted">${a.reason}</p>`
+    const b=document.createElement('button');b.textContent='Approve & Send Video Link';b.onclick=()=>approveAndSend(a.id)
+    d.appendChild(b);c.appendChild(d)
   })
 }
 
-function approveAndSend(apptId){
-  const appts = load(DB_APPTS_KEY)
-  const a = appts.find(x=>x.id===apptId); if(!a) return alert('Not found')
-  a.status='approved'
-  a.videoLink = 'https://meet.example.com/'+uid()
-  save(DB_APPTS_KEY, appts);
-  alert('Approved. Video link created: '+a.videoLink)
-  renderDoctorPending(); renderDoctorHistory(); renderPatientAppts(); renderAdminAppts();
+function approveAndSend(id){
+  const appts=load(DB_APPTS_KEY);const a=appts.find(x=>x.id===id);if(!a)return
+  a.status='approved';a.videoLink='https://meet.example.com/'+uid();save(DB_APPTS_KEY,appts)
+  alert('Approved. Video link: '+a.videoLink)
+  renderDoctorPending();renderDoctorHistory();renderPatientAppts();renderAdminAppts()
 }
 
 function renderDoctorHistory(){
-  const user=getCurrent(); if(!user) return
-  const appts = load(DB_APPTS_KEY).filter(a=>a.doctorId===user.id && (a.status==='approved' || a.status==='completed'))
-  const container=document.getElementById('doctorHistory'); container.innerHTML=''
-  if(appts.length===0){container.innerHTML='<p class="muted">No approved/completed appointments</p>';return}
+  const user=getCurrent();if(!user)return
+  const appts=load(DB_APPTS_KEY).filter(a=>a.doctorId===user.id&&(a.status==='approved'||a.status==='completed'))
+  const c=document.getElementById('doctorHistory');c.innerHTML=''
+  if(appts.length===0){c.innerHTML='<p class="muted">No approved/completed</p>';return}
   appts.forEach(a=>{
-    const patient = load(DB_USERS_KEY).find(u=>u.id===a.patientId)
-    const div=document.createElement('div'); div.className='card small'
-    div.innerHTML = `<strong>${patient?patient.name:'(patient)'} — ${new Date(a.datetime).toLocaleString()}</strong><p class="muted">${a.reason}</p>`
-    const btnPres=document.createElement('button'); btnPres.textContent='Write Prescription'; btnPres.onclick=()=>writePrescription(a.id)
-    const btnComplete=document.createElement('button'); btnComplete.textContent='Mark Completed'; btnComplete.style.marginLeft='8px'; btnComplete.onclick=()=>markCompleted(a.id)
-    div.appendChild(btnPres); div.appendChild(btnComplete)
-    container.appendChild(div)
+    const p=load(DB_USERS_KEY).find(u=>u.id===a.patientId)
+    const d=document.createElement('div');d.className='card small'
+    d.innerHTML=`<strong>${p?p.name:'(patient)'} — ${new Date(a.datetime).toLocaleString()}</strong><p class="muted">${a.reason}</p>`
+    const b1=document.createElement('button');b1.textContent='Write Prescription';b1.onclick=()=>writePrescription(a.id)
+    const b2=document.createElement('button');b2.textContent='Mark Completed';b2.style.marginLeft='8px';b2.onclick=()=>markCompleted(a.id)
+    d.appendChild(b1);d.appendChild(b2);c.appendChild(d)
   })
 }
 
-function writePrescription(apptId){
-  const text = prompt('Enter prescription text (meds, dosages, notes):')
-  if(!text) return
-  const prescs = load(DB_PRESC_KEY)
-  const id = uid()
-  prescs.push({id,apptId,text,createdAt:Date.now(),dispensed:false})
-  save(DB_PRESC_KEY, prescs)
-  // link prescription to appointment
-  const appts = load(DB_APPTS_KEY)
-  const a = appts.find(x=>x.id===apptId); if(a){a.prescriptionId=id; save(DB_APPTS_KEY, appts)}
-  alert('Prescription saved and linked to appointment.')
-  renderPrescriptions(); renderPatientAppts(); renderAdminAppts();
+function writePrescription(id){
+  const text=prompt('Enter prescription:')
+  if(!text)return
+  const prescs=load(DB_PRESC_KEY);const pid=uid();prescs.push({id:pid,apptId:id,text,createdAt:Date.now(),dispensed:false});save(DB_PRESC_KEY,prescs)
+  const appts=load(DB_APPTS_KEY);const a=appts.find(x=>x.id===id);if(a){a.prescriptionId=pid;save(DB_APPTS_KEY,appts)}
+  alert('Prescription saved.');renderPrescriptions();renderPatientAppts();renderAdminAppts()
 }
 
-function markCompleted(apptId){
-  const appts = load(DB_APPTS_KEY); const a = appts.find(x=>x.id===apptId); if(!a) return
-  a.status='completed'; save(DB_APPTS_KEY, appts)
-  alert('Appointment marked completed')
-  renderDoctorHistory(); renderPatientAppts(); renderAdminAppts();
+function markCompleted(id){
+  const appts=load(DB_APPTS_KEY);const a=appts.find(x=>x.id===id);if(!a)return
+  a.status='completed';save(DB_APPTS_KEY,appts);alert('Marked completed')
+  renderDoctorHistory();renderPatientAppts();renderAdminAppts()
 }
 
-// ---------- Pharmacist: view prescriptions & mark dispensed ----------
 function renderPrescriptions(){
-  const prescs = load(DB_PRESC_KEY)
-  const container=document.getElementById('prescriptionsList'); container.innerHTML=''
-  if(prescs.length===0) {container.innerHTML='<p class="muted">No prescriptions</p>';return}
+  const prescs=load(DB_PRESC_KEY);const c=document.getElementById('prescriptionsList');c.innerHTML=''
+  if(prescs.length===0){c.innerHTML='<p class="muted">No prescriptions</p>';return}
   prescs.forEach(p=>{
-    const appt = load(DB_APPTS_KEY).find(a=>a.id===p.apptId)
-    const patient = appt ? load(DB_USERS_KEY).find(u=>u.id===appt.patientId) : null
-    const div=document.createElement('div'); div.className='card small'
-    div.innerHTML = `<strong>Rx for ${patient?patient.name:'(patient)'} — ${new Date(p.createdAt).toLocaleDateString()}</strong><p class="muted">${p.text}</p>`
-    const btn=document.createElement('button'); btn.textContent = p.dispensed? 'Dispensed':'Mark Dispensed'; btn.onclick=()=>{toggleDispensed(p.id)}
-    div.appendChild(btn); container.appendChild(div)
+    const a=load(DB_APPTS_KEY).find(x=>x.id===p.apptId)
+    const patient=a?load(DB_USERS_KEY).find(u=>u.id===a.patientId):null
+    const d=document.createElement('div');d.className='card small'
+    d.innerHTML=`<strong>Rx for ${patient?patient.name:'(patient)'} — ${new Date(p.createdAt).toLocaleDateString()}</strong><p class="muted">${p.text}</p>`
+    const b=document.createElement('button');b.textContent=p.dispensed?'Dispensed':'Mark Dispensed';b.onclick=()=>toggleDispensed(p.id)
+    d.appendChild(b);c.appendChild(d)
   })
 }
 
-function toggleDispensed(prescId){
-  const prescs = load(DB_PRESC_KEY); const p = prescs.find(x=>x.id===prescId); if(!p) return
-  p.dispensed = !p.dispensed; save(DB_PRESC_KEY, prescs); renderPrescriptions(); renderAdminAppts();
+function toggleDispensed(id){
+  const prescs=load(DB_PRESC_KEY);const p=prescs.find(x=>x.id===id);if(!p)return
+  p.dispensed=!p.dispensed;save(DB_PRESC_KEY,prescs);renderPrescriptions();renderAdminAppts()
 }
 
-// ---------- Admin: view & delete users/appointments ----------
 function renderAdminUsers(){
-  const users=load(DB_USERS_KEY)
-  const container=document.getElementById('adminUsers'); container.innerHTML=''
-  const table=document.createElement('table')
-  table.innerHTML='<tr><th>Name</th><th>Email</th><th>Role</th><th>Action</th></tr>'
-  users.forEach(u=>{
-    const tr=document.createElement('tr')
-    tr.innerHTML=`<td>${u.name}</td><td>${u.email}</td><td>${u.role}</td><td><button onclick="adminDeleteUser('${u.id}')">Delete</button></td>`
-    table.appendChild(tr)
-  })
-  container.appendChild(table)
+  const users=load(DB_USERS_KEY);const c=document.getElementById('adminUsers');c.innerHTML=''
+  const t=document.createElement('table');t.innerHTML='<tr><th>Name</th><th>Email</th><th>Role</th><th>Action</th></tr>'
+  users.forEach(u=>{const tr=document.createElement('tr');tr.innerHTML=`<td>${u.name}</td><td>${u.email}</td><td>${u.role}</td><td><button onclick="adminDeleteUser('${u.id}')">Delete</button></td>`;t.appendChild(tr)})
+  c.appendChild(t)
 }
 
 function adminDeleteUser(id){
-  if(!confirm('Delete user? This cannot be undone.')) return
-  let users=load(DB_USERS_KEY); users = users.filter(u=>u.id!==id); save(DB_USERS_KEY, users)
-  // remove related appointments & prescriptions
-  let appts=load(DB_APPTS_KEY); appts = appts.filter(a=>a.patientId!==id && a.doctorId!==id); save(DB_APPTS_KEY, appts)
-  let presc=load(DB_PRESC_KEY); presc=presc.filter(p=>{ const a=load(DB_APPTS_KEY).find(x=>x.id===p.apptId); return !!a }); save(DB_PRESC_KEY, presc)
-  renderAdminUsers(); renderAdminAppts(); renderDoctorPending(); renderPatientAppts();
+  if(!confirm('Delete user?'))return
+  let users=load(DB_USERS_KEY).filter(u=>u.id!==id);save(DB_USERS_KEY,users)
+  let appts=load(DB_APPTS_KEY).filter(a=>a.patientId!==id&&a.doctorId!==id);save(DB_APPTS_KEY,appts)
+  let presc=load(DB_PRESC_KEY).filter(p=>load(DB_APPTS_KEY).find(a=>a.id===p.apptId));save(DB_PRESC_KEY,presc)
+  renderAdminUsers();renderAdminAppts()
 }
 
 function renderAdminAppts(){
-  const appts = load(DB_APPTS_KEY)
-  const container=document.getElementById('adminAppts'); container.innerHTML=''
-  if(appts.length===0){container.innerHTML='<p class="muted">No appointments</p>';return}
-  const table=document.createElement('table')
-  table.innerHTML='<tr><th>Patient</th><th>Doctor</th><th>Date</th><th>Status</th><th>Action</th></tr>'
+  const appts=load(DB_APPTS_KEY);const c=document.getElementById('adminAppts');c.innerHTML=''
+  const t=document.createElement('table');t.innerHTML='<tr><th>Patient</th><th>Doctor</th><th>Date</th><th>Status</th><th>Paid</th></tr>'
   appts.forEach(a=>{
     const p=load(DB_USERS_KEY).find(u=>u.id===a.patientId)
     const d=load(DB_USERS_KEY).find(u=>u.id===a.doctorId)
     const tr=document.createElement('tr')
-    tr.innerHTML = `<td>${p?p.name:'(deleted)'}</td><td>${d?d.name:'(deleted)'}</td><td>${new Date(a.datetime).toLocaleString()}</td><td>${a.status}</td><td><button onclick="adminDeleteAppt('${a.id}')">Delete</button></td>`
-    table.appendChild(tr)
+    tr.innerHTML=`<td>${p?p.name:''}</td><td>${d?d.name:''}</td><td>${new Date(a.datetime).toLocaleString()}</td><td>${a.status}</td><td>${a.paid?'Yes':'No'}</td>`
+    t.appendChild(tr)
   })
-  container.appendChild(table)
+  c.appendChild(t)
 }
 
-function adminDeleteAppt(id){ if(!confirm('Delete appointment?')) return; let appts=load(DB_APPTS_KEY); appts=appts.filter(a=>a.id!==id); save(DB_APPTS_KEY,appts); renderAdminAppts(); renderPatientAppts(); renderDoctorPending();}
-
-// ---------- View prescription (patient) ----------
 function viewPrescription(id){
-  const p = load(DB_PRESC_KEY).find(x=>x.id===id); if(!p) return alert('Prescription not found')
-  alert('Prescription:\n\n'+p.text)
+  const p=load(DB_PRESC_KEY).find(x=>x.id===id)
+  if(!p)return alert('Not found')
+  alert('Prescription:\n'+p.text)
 }
 
-// ---------- Init if session exists ----------
-(function init(){
-  const cur = getCurrent()
-  if(cur) showRoleDashboard(cur.role)
-  else showSection('auth')
-})();
-
-// expose logout for header button
-window.showSection = function(id){
-  if(id==='auth'){ sessionStorage.removeItem('medf_current'); document.querySelectorAll('main > section').forEach(s=>s.style.display='none'); document.getElementById('auth').style.display='block'; return}
-  document.querySelectorAll('main > section').forEach(s=>s.style.display='none'); document.getElementById(id).style.display='block'
-}
+const u=getCurrent()
+if(u)showRoleDashboard(u.role);else showSection('register')
 </script>
 </body>
 </html>
